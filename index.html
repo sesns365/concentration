@@ -412,13 +412,24 @@
         // 3. 輔助工具 (TTS/音效/通用)
         // ----------------------------------------------------
         
+        // Regex to match most common Emojis/symbols
+        const EMOJI_REGEX = /(\p{Extended_Pictographic}|\p{Emoji_Component}|\p{Emoji_Modifier}|\p{Emoji_Modifier_Base})/gu;
+
         /** 語詞朗讀 (使用瀏覽器內建 TTS，速度快，零延遲) */
         function readWord(word) {
             if ('speechSynthesis' in window) {
+                // 1. 過濾掉 Emoji/圖示
+                let cleanWord = word.replace(EMOJI_REGEX, '').trim(); 
+                
+                // 2. 移除 Level 3 故事中的圖示 (雖然 Level 3 已經是純文字，但為了安全再次過濾)
+                if (cleanWord.startsWith('🔪')) cleanWord = cleanWord.substring(1).trim();
+                
+                if (cleanWord === "") return; // 如果清空後是空字串則不報讀
+
                 // 在開始新的語音前，停止任何正在播放的語音
                 window.speechSynthesis.cancel(); 
                 
-                const utterance = new SpeechSynthesisUtterance(word);
+                const utterance = new SpeechSynthesisUtterance(cleanWord);
                 utterance.lang = 'zh-TW'; 
                 // 調整語速和音調，使其聽起來清晰快速
                 utterance.rate = 1.5; 
@@ -984,3 +995,4 @@
     </script>
 </body>
 </html>
+
